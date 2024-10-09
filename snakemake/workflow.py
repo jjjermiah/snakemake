@@ -447,7 +447,9 @@ class Workflow(WorkflowExecutorInterface):
         return self._persistence
 
     @property
-    def dag(self):
+    def dag(self) -> DAG:
+        if self._dag is None:
+            raise ValueError("dag does not exist.")
         return self._dag
 
     @property

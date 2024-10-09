@@ -1884,7 +1884,6 @@ def args_to_api(args, parser):
         name: StoragePluginRegistry().get_plugin(name).get_settings(args)
         for name in StoragePluginRegistry().get_registered_plugins()
     }
-
     if args.reporter:
         report_plugin = _get_report_plugin_registry().get_plugin(args.reporter)
         report_settings = report_plugin.get_settings(args)

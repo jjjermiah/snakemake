@@ -829,7 +829,7 @@ class Logger:
             custom_level, _logging.INFO
         )  # Default to INFO if not recognized
 
-        record = self.logger.makeRecord(
+        record: _logging.LogRecord = self.logger.makeRecord(
             name=self.logger.name,
             level=log_level,
             fn="",
@@ -839,7 +839,7 @@ class Logger:
             exc_info=None,
         )
 
-        self.logger.handle(record)
+        self.logger.handle(record=record)
 
     # Logging methods for various log levels
     def info(self, msg, indent=False):

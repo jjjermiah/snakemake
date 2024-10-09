@@ -39,6 +39,7 @@ from snakemake.settings.types import (
 
 from snakemake_interface_executor_plugins.settings import ExecMode, ExecutorSettingsBase
 from snakemake_interface_executor_plugins.registry import ExecutorPluginRegistry
+from snakemake_interface_executor_plugins.registry.plugin import Plugin as ExecutorPlugin
 from snakemake_interface_common.exceptions import ApiError
 from snakemake_interface_storage_plugins.registry import StoragePluginRegistry
 from snakemake_interface_common.plugin_registry.plugin import TaggedSettings
@@ -479,7 +480,10 @@ class DAGApi(ApiBase):
 
         executor_plugin_registry = _get_executor_plugin_registry()
         executor_plugin = executor_plugin_registry.get_plugin(executor)
-
+        # if not isinstance(executor_plugin, ExecutorPlugin):
+        #     raise ApiError(
+        #         f"The executor plugin {executor_plugin} is not an instance of ExecutorPlugin."
+        #     )
         if executor_settings is not None:
             executor_plugin.validate_settings(executor_settings)
 

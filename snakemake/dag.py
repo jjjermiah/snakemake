@@ -362,7 +362,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
             else:
                 jobs = []
 
-        to_retrieve = {
+        to_retrieve: Set[_IOFile] = {
             f
             for job in jobs
             for f in job.input
@@ -1071,6 +1071,10 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
         create_inventory=False,
     ):
         """Update the DAG by adding the given job and its dependencies."""
+        logger.debug(
+            f"Running update_({job.rule.name}, {job.wildcards_dict}) with {job} in {self.jobs}"
+        )
+        # import pdb; pdb.set_trace()
         if job in self._dependencies:
             return
         if visited is None:
@@ -1079,7 +1083,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
             known_producers = dict()
         visited.add(job)
         dependencies = self._dependencies[job]
-        potential_dependencies = [
+        potential_dependencies: List[PotentialDependency] = [
             res
             async for res in self.collect_potential_dependencies(
                 job, known_producers=known_producers
@@ -1090,6 +1094,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
         producer = dict()
         exceptions = dict()
         for res in potential_dependencies:
+            logger.debug(f"Potential dependency: {res}")
             if create_inventory:
                 # If possible, obtain inventory information starting from
                 # given file and store it in the IOCache.
@@ -1097,7 +1102,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
                 # than querying file by file. If the file type does not support inventory
                 # information, this call is a no-op.
                 await res.file.inventory()
-
+            logger.debug(f"Inventory retrieved: {res.file}")
             if not res.jobs:
                 # no producing job found
                 if self.workflow.is_main_process and not await res.file.exists():

@@ -43,7 +43,10 @@ from snakemake_interface_storage_plugins.io import (
     Mtime,
     get_constant_prefix,
 )
-
+from snakemake_interface_storage_plugins.storage_object import (
+    StorageObjectRead,
+    StorageObjectBase,
+)
 from snakemake.common import (
     ON_WINDOWS,
     async_run,
@@ -200,21 +203,25 @@ def IOFile(file, rule: Union["snakemake.rules.Rule", None] = None):
     return f
 
 
-def iocache(func: Callable):
-    @functools.wraps(func)
-    async def wrapper(self: "_IOFile", *args, **kwargs):
-        assert self.rule is not None
-        if self.rule.workflow.iocache.active:
-            cache = getattr(self.rule.workflow.iocache, func.__name__)
-            if self in cache:
-                return cache[self]
-            v = await func(self, *args, **kwargs)
-            cache[self] = v
+class iocache:
+    def __init__(self, func: Callable):
+        self.func = func
+        functools.wraps(func)(self)
+
+    async def __call__(self, instance: "_IOFile", *args, **kwargs):
+        assert instance.rule is not None
+        if instance.rule.workflow.iocache.active:
+            cache = getattr(instance.rule.workflow.iocache, self.func.__name__)
+            if instance in cache:
+                return cache[instance]
+            v = await self.func(instance, *args, **kwargs)
+            cache[instance] = v
             return v
         else:
-            return await func(self, *args, **kwargs)
+            return await self.func(instance, *args, **kwargs)
 
-    return wrapper
+    def __get__(self, instance, owner):
+        return functools.partial(self.__call__, instance)
 
 
 class _IOFile(str, AnnotatedStringInterface):
@@ -277,15 +284,22 @@ class _IOFile(str, AnnotatedStringInterface):
         """
         assert self.rule is not None
         cache: IOCache = self.rule.workflow.iocache
-        if cache.active:
-            tasks = []
-            if self.is_storage and self not in cache.exists_in_storage:
-                # info not yet in inventory, let's discover as much as we can
-                tasks.append(self.storage_object.inventory(cache))
-            elif not ON_WINDOWS and self not in cache.exists_local:
-                # we don't want to mess with different path representations on windows
-                tasks.append(self._local_inventory(cache))
-            await asyncio.gather(*tasks)
+        if not cache.active:
+            return
+
+        tasks = []
+        if self.is_storage and self not in cache.exists_in_storage:
+            logger.debug("Trying here")
+            assert isinstance(self.storage_object, StorageObjectRead)
+            logger.debug(f"{self.storage_object.inventory}")
+
+            tasks.append(self.storage_object.inventory(cache=cache))
+        elif not ON_WINDOWS and self not in cache.exists_local:
+            logger.debug("now here!")
+            tasks.append(self._local_inventory(cache))
+        logger.debug(tasks)
+
+        await asyncio.gather(*tasks)
 
     async def _local_inventory(self, cache: IOCache):
         # for local files, perform BFS via os.scandir to determine existence of files
@@ -401,8 +415,11 @@ class _IOFile(str, AnnotatedStringInterface):
         return not self.storage_object.retrieve
 
     @property
-    def storage_object(self):
-        return get_flag_value(self._file, "storage_object")
+    def storage_object(self) -> StorageObjectBase:
+        storage_object = get_flag_value(self._file, "storage_object")
+        if storage_object is None:
+            raise ValueError("Storage object is not set.")
+        return storage_object
 
     @property
     def file(self):
@@ -463,7 +480,7 @@ class _IOFile(str, AnnotatedStringInterface):
 
     @iocache
     async def exists_local(self):
-        return os.path.exists(self.file)
+        return os.path.exists(str(self.file))
 
     @iocache
     async def exists_in_storage(self):
@@ -482,21 +499,18 @@ class _IOFile(str, AnnotatedStringInterface):
 
     async def mtime(self):
         assert self.rule is not None
-        if self.rule.workflow.iocache.active:
-            cache: IOCache = self.rule.workflow.iocache
-            if self in cache.mtime:
-                mtime = cache.mtime[self]
-                # if inventory is filled by storage plugin, mtime.local() will be None and
-                # needs update
-                if mtime.local() is None and await self.exists_local():
-                    mtime_local = await self.mtime_uncached(skip_storage=True)
-                    mtime._local_target = mtime_local._local_target
-                    mtime._local = mtime_local._local
-            else:
-                cache.mtime[self] = mtime = await self.mtime_uncached()
-            return mtime
-        else:
+        if not self.rule.workflow.iocache.active:
             return await self.mtime_uncached()
+
+        cache: IOCache = self.rule.workflow.iocache
+        if self in cache.mtime:
+            mtime = cache.mtime[self]
+            # if inventory is filled by storage plugin, mtime.local() will be None and
+            # needs update
+            if mtime.local() is None and await self.exists_local():
+                mtime_local = await self.mtime_uncached(skip_storage=True)
+                mtime._local_target = mtime_local._local_target
+                mtime._local = mtime_local._local
 
     async def mtime_uncached(self, skip_storage: bool = False):
         """Obtain mtime.
@@ -649,26 +663,39 @@ class _IOFile(str, AnnotatedStringInterface):
         a symlink that points to a file newer than time."""
         if self.is_ancient:
             return False
-
-        return (await self.mtime()).local_or_storage(follow_symlinks=True) > time
+        mtime = await self.mtime()
+        if mtime is not None:
+            return mtime.local_or_storage(follow_symlinks=True) > time
+        else:
+            raise ValueError(f"Cannot compare mtimes. {mtime=}, {time=}")
 
     async def retrieve_from_storage(self):
-        if self.is_storage:
-            if not self.should_not_be_retrieved_from_storage:
-
-                async def is_newer_in_storage():
-                    mtime = await self.mtime()
-                    return mtime.local() < mtime.storage()
-
-                if not await self.exists_local() or await is_newer_in_storage():
-                    logger.info(f"Retrieving from storage: {self.storage_object.query}")
-                    await self.storage_object.managed_retrieve()
-                    logger.info("Finished retrieval.")
-        else:
+        if not self.is_storage:
             raise WorkflowError(
                 "The file to be retrieved does not seem to exist in the storage.",
                 rule=self.rule,
             )
+
+        if self.should_not_be_retrieved_from_storage:
+            return
+
+        async def is_newer_in_storage():
+            mtime = await self.mtime()
+            assert isinstance(mtime, Mtime) and mtime is not None
+            local_mtime, storage_mtime = mtime.local(), mtime.storage()
+            if local_mtime is not None and storage_mtime is not None:
+                return local_mtime < storage_mtime
+            else:
+                raise ValueError(
+                    f"Cannot compare mtimes. {local_mtime=}, {storage_mtime=}"
+                )
+
+        assert self.storage_object is not None
+
+        if not await self.exists_local() or await is_newer_in_storage():
+            logger.info(f"Retrieving from storage: {self.storage_object.query}")
+            await self.storage_object.managed_retrieve()
+            logger.info("Finished retrieval.")
 
     async def store_in_storage(self):
         if self.is_storage:
@@ -918,7 +945,9 @@ def is_flagged(value: MaybeAnnotated, flag: str) -> bool:
     return value.is_flagged(flag)
 
 
-def flag(value, flag_type, flag_value=True):
+def flag(
+    value, flag_type, flag_value=True
+) -> AnnotatedStringInterface | AnnotatedString | list[Any]:
     if isinstance(value, AnnotatedStringInterface):
         value.flags[flag_type] = flag_value
         return value
@@ -1349,10 +1378,12 @@ def expand(*args, **wildcard_values):
     }
 
     def do_expand(
-        wildcard_values: Dict[str, dict[str, Union[str, collections.abc.Iterable[str]]]]
+        wildcard_values: Dict[
+            str, dict[str, Union[str, collections.abc.Iterable[str]]]
+        ],
     ):
         def flatten(
-            wildcard_values: Dict[str, Union[str, collections.abc.Iterable[str]]]
+            wildcard_values: Dict[str, Union[str, collections.abc.Iterable[str]]],
         ):
             for wildcard, value in wildcard_values.items():
                 if (

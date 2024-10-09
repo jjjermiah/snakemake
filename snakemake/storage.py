@@ -139,6 +139,7 @@ class StorageRegistry:
         retrieve: bool = True,
         keep_local: bool = False,
     ):
+        
         return self._storage_object(
             query, provider=None, retrieve=retrieve, keep_local=keep_local
         )
@@ -150,6 +151,8 @@ class StorageRegistry:
         retrieve: bool = True,
         keep_local: bool = False,
     ):
+        print("HERE")
+        import pdb; pdb.set_trace()
         if isinstance(query, list):
             return [
                 self._storage_object(
