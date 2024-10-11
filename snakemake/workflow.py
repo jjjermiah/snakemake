@@ -1786,6 +1786,7 @@ class Workflow(WorkflowExecutorInterface):
 
                 if isinstance(ruleinfo.conda_env, Path):
                     ruleinfo.conda_env = str(ruleinfo.conda_env)
+                logger.info(f"{ruleinfo.conda_env=}")
 
                 rule.conda_env = ruleinfo.conda_env
 
@@ -1810,6 +1811,8 @@ class Workflow(WorkflowExecutorInterface):
                     # skip rules with run directive or empty image
                     rule.container_img = self.global_container_img
                     rule.is_containerized = self.global_is_containerized
+            if ruleinfo.pixi:
+                logger.info(f"Hey were using a pixi thingy! {ruleinfo.pixi}")
 
             rule.norun = ruleinfo.norun
             if ruleinfo.name is not None:
@@ -1961,6 +1964,16 @@ class Workflow(WorkflowExecutorInterface):
             ruleinfo.conda_env = conda_env
             return ruleinfo
 
+        return decorate
+
+    def pixi(self, env, lockfile = "pixi.lock",):
+        lockfilepath = self.current_basedir.join(lockfile)
+        pixi_env = {"lockfile": lockfile, "env": env}
+
+        def decorate(ruleinfo):
+            ruleinfo.pixi = pixi_env
+            return ruleinfo
+        
         return decorate
 
     def global_conda(self, conda_env):

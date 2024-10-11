@@ -483,6 +483,8 @@ class Benchmark(RuleKeywordState):
 class Conda(RuleKeywordState):
     pass
 
+class Pixi(RuleKeywordState):
+    pass
 
 class Singularity(RuleKeywordState):
     @property
@@ -712,6 +714,7 @@ rule_property_subautomata = dict(
     message=Message,
     benchmark=Benchmark,
     conda=Conda,
+    pixi=Pixi,
     singularity=Singularity,
     container=Container,
     containerized=Containerized,

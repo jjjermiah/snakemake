@@ -1520,7 +1520,6 @@ def script(
         wildcards,
         params,
     )
-
     exec_class = {
         "python": PythonScript,
         "r": RScript,

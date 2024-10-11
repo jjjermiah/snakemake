@@ -96,7 +96,9 @@ class Rule(RuleInterface):
         self._log = Log()
         self._benchmark = None
         self._conda_env = None
+        self._pixi_env = None
         self._expanded_conda_env = _NOT_CACHED
+        self._expanded_pixi_env = _NOT_CACHED
         self._container_img = None
         self.is_containerized = False
         self.env_modules = None
@@ -1064,6 +1066,24 @@ class Rule(RuleInterface):
             return resolved
         else:
             return self.group
+        
+    def expand_pixi_env(self, wildcards, params=None, input=None):
+        if self._expanded_pixi_env is not _NOT_CACHED:
+            return self._expanded_pixi_env
+        
+        from snakemake.common import is_local_file
+        from snakemake.sourcecache import SourceFile, infer_source_file
+        from snakemake.deployment.conda import (
+            is_conda_env_file,
+            CondaEnvFileSpec,
+            CondaEnvNameSpec,
+        )
+        env = self._pixi_env
+        if pixi_env is None:
+            self._expanded_pixi_env = None
+            return None
+
+        
 
     def expand_conda_env(self, wildcards, params=None, input=None):
         if self._expanded_conda_env is not _NOT_CACHED:

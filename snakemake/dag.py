@@ -211,7 +211,8 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
 
         self.update_container_imgs()
         self.update_conda_envs()
-
+        # self.update_pixi_envs()
+        
         await self.update_needrun(create_inventory=True)
         self.set_until_jobs()
         self.delete_omitfrom_jobs()
@@ -310,6 +311,23 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
                 del self.depending[job]
             except KeyError:
                 pass
+            
+    def update_pixi_envs(self):
+        env_set = {
+            (job.pixi_env_spec, job.container_img_url)
+            for job in self.jobs
+            if job.pixi_env_spec
+            and (
+                job.is_local
+                or SharedFSUsage.SOFTWARE_DEPLOYMENT
+                in self.workflow.storage_settings.shared_fs_usage
+                or (
+                    self.workflow.remote_exec
+                    and SharedFSUsage.SOFTWARE_DEPLOYMENT
+                    not in self.workflow.storage_settings.shared_fs_usage
+                )
+            )
+        }
 
     def update_conda_envs(self):
         # First deduplicate based on job.conda_env_spec

@@ -209,6 +209,7 @@ class Job(AbstractJob, SingleJobExecutorInterface, JobReportInterface):
         "_resources",
         "_conda_env_file",
         "_conda_env",
+        "_pixi_env",
         "_shadow_dir",
         "_inputsize",
         "temp_output",
@@ -267,7 +268,7 @@ class Job(AbstractJob, SingleJobExecutorInterface, JobReportInterface):
         self._scheduler_resources = None
         self._conda_env = None
         self._group = None
-
+        self._pixi_env = None
         # pipe_group will only be set if the job generates or consumes a pipe
         self.pipe_group = None
 
@@ -517,6 +518,13 @@ class Job(AbstractJob, SingleJobExecutorInterface, JobReportInterface):
             return self._conda_env
         return None
 
+    @property
+    def pixi_env(self):
+        if self.pixi:
+            if self._pixi_env is None:
+                self._pixi_env = self.dag.pixi_envs.get(self.pixi)
+            return self._pixi_env
+    
     def archive_conda_env(self):
         """Archive a conda environment into a custom local channel."""
         if self.conda_env_spec:

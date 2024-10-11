@@ -1671,6 +1671,24 @@ def get_argument_parser(profiles=None):
         "fallback for rules which don't define environment modules.",
     )
 
+    group_pixi = parser.add_argument_group("PIXI")
+    
+    group_pixi.add_argument(
+        "--use-pixi",
+        action="store_true",
+        help="If defined in the rule, run job within a pixi defined environment. "
+        "environments can be defined in a pixi.toml, pyproject.toml or pixi.lock file.",
+    )
+    
+    
+    # group_pixi.add_argument(
+    #     "--pixi-manifest",
+    #     help="Path to the Pixi manifest file. (pixi.toml or pyproject.toml)",
+    #     type=Path,
+    #     default=None,
+    # )
+        
+
     def help_internal(text):
         return f"Internal use only: {text}"
 
@@ -1937,6 +1955,8 @@ def args_to_api(args, parser):
             deployment_method.add(DeploymentMethod.APPTAINER)
         if args.use_envmodules:
             deployment_method.add(DeploymentMethod.ENV_MODULES)
+        if args.use_pixi:
+            deployment_method.add(DeploymentMethod.PIXI)
 
         try:
             storage_settings = StorageSettings(

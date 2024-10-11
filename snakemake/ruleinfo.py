@@ -24,6 +24,7 @@ class RuleInfo:
         self.message = None
         self.benchmark = None
         self.conda_env = None
+        self.pixi = None
         self.container_img = None
         self.is_containerized = False
         self.env_modules = None

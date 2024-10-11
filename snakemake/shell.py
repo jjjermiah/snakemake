@@ -261,7 +261,6 @@ class shell:
             logger.info(f"Activating singularity image {container_img}")
         if conda_env:
             logger.info(f"Activating conda environment: {os.path.relpath(conda_env)}")
-
         tmpdir_resource = resources.get("tmpdir", None)
         # environment variable lists for linear algebra libraries taken from:
         # https://stackoverflow.com/a/53224849/2352071
@@ -314,7 +313,6 @@ class shell:
                 win_prefix,
                 argvquote(cmd),
             )
-
         proc = sp.Popen(
             cmd,
             bufsize=-1,
