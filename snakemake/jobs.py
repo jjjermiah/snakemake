@@ -265,6 +265,8 @@ class Job(AbstractJob, SingleJobExecutorInterface, JobReportInterface):
         self._benchmark = None
         self._resources = None
         self._conda_env_spec = None
+        
+        self._pixi_env_spec = None
         self._scheduler_resources = None
         self._conda_env = None
         self._group = None
@@ -507,6 +509,14 @@ class Job(AbstractJob, SingleJobExecutorInterface, JobReportInterface):
                 self.wildcards_dict, self.params, self.input
             )
         return self._conda_env_spec
+
+    @property
+    def pixi_env_spec(self):
+        if self._pixi_env_spec is None:
+            self._pixi_env_spec = self.rule.expand_pixi_env(
+                self.wildcards_dict, self.params, self.input
+            )
+        return self._pixi_env_spec
 
     @property
     def conda_env(self):

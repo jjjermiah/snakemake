@@ -137,6 +137,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
         self._jobid = dict()
         self.job_cache = dict()
         self.conda_envs = dict()
+        self.pixi_envs = dict()
         self.container_imgs = dict()
         self._progress = 0
         self._group = dict()
@@ -226,7 +227,7 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
 
         self.update_container_imgs()
         self.update_conda_envs()
-        # self.update_pixi_envs()
+        self.update_pixi_envs()
         
         await self.update_needrun(create_inventory=True)
         self.set_until_jobs()
@@ -343,6 +344,25 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
                 )
             )
         }
+        
+        for env_spec, simg_url in env_set:
+            simg = None
+            if simg_url and (
+                DeploymentMethod.APPTAINER
+                in self.workflow.deployment_settings.deployment_method
+            ):
+                assert (
+                    simg_url in self.container_imgs
+                ), "bug: must first pull singularity images"
+                simg = self.container_imgs[simg_url]
+            key = (env_spec, simg_url)
+            if key not in self.pixi_envs:
+                env = env_spec.get_pixi_env(
+                    self.workflow,
+                    container_img=simg,
+                )
+                self.pixi_envs[key] = env
+        
 
     def update_conda_envs(self):
         # First deduplicate based on job.conda_env_spec
@@ -484,6 +504,12 @@ class DAG(DAGExecutorInterface, DAGReportInterface):
         for env in self.conda_envs.values():
             if (not dryrun or not quiet) and not env.is_externally_managed:
                 env.create(self.workflow.dryrun)
+
+    def create_pixi_envs(self, dryrun=False, quiet=False)-> None:
+        dryrun |= self.workflow.dryrun
+        for env in self.pixi_envs.values():
+            # print(f"PIXI ENV: {env}")
+            env.create()
 
     def update_container_imgs(self):
         # First deduplicate based on job.conda_env_spec

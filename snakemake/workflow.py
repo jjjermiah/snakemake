@@ -1162,6 +1162,8 @@ class Workflow(WorkflowExecutorInterface):
                     self.dag.pull_container_imgs()
                 if DeploymentMethod.CONDA in self.deployment_settings.deployment_method:
                     self.dag.create_conda_envs()
+                if DeploymentMethod.PIXI in self.deployment_settings.deployment_method:
+                    self.dag.create_pixi_envs()
 
             shared_storage_local_copies = (
                 SharedFSUsage.STORAGE_LOCAL_COPIES
@@ -1799,6 +1801,21 @@ class Workflow(WorkflowExecutorInterface):
 
                 rule.conda_env = ruleinfo.conda_env
 
+            if ruleinfo.pixi:
+                if not (
+                    ruleinfo.script
+                    or ruleinfo.wrapper
+                    or ruleinfo.shellcmd
+                    or ruleinfo.notebook
+                ):
+                    raise RuleException(
+                        "Conda environments are only allowed "
+                        "with shell, script, notebook, or wrapper directives "
+                        "(not with run or template_engine).",
+                        rule=rule,
+                )
+                rule.pixi_env = ruleinfo.pixi
+
             invalid_rule = not (
                 ruleinfo.script
                 or ruleinfo.wrapper
@@ -1975,14 +1992,18 @@ class Workflow(WorkflowExecutorInterface):
 
         return decorate
 
-    def pixi(self, env, lockfile = "pixi.lock",):
+    def pixi(
+        self,
+        env,
+        lockfile="pixi.lock",
+    ):
         lockfilepath = self.current_basedir.join(lockfile)
         pixi_env = {"lockfile": lockfile, "env": env}
 
         def decorate(ruleinfo):
             ruleinfo.pixi = pixi_env
             return ruleinfo
-        
+
         return decorate
 
     def global_conda(self, conda_env):

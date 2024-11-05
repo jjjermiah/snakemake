@@ -256,6 +256,14 @@ class Rule(RuleInterface):
         self._conda_env = conda_env
 
     @property
+    def pixi_env(self):
+        return self._pixi_env
+
+    @pixi_env.setter
+    def pixi_env(self, pixi_env):
+        self._pixi_env = pixi_env
+
+    @property
     def container_img(self):
         return self._container_img
 
@@ -1066,24 +1074,25 @@ class Rule(RuleInterface):
             return resolved
         else:
             return self.group
-        
+
     def expand_pixi_env(self, wildcards, params=None, input=None):
         if self._expanded_pixi_env is not _NOT_CACHED:
             return self._expanded_pixi_env
-        
+
         from snakemake.common import is_local_file
         from snakemake.sourcecache import SourceFile, infer_source_file
-        from snakemake.deployment.conda import (
-            is_conda_env_file,
-            CondaEnvFileSpec,
-            CondaEnvNameSpec,
+        from snakemake.deployment.pixi import (
+            PixiEnvLockfileSpec,
         )
-        env = self._pixi_env
+
+        pixi_env = self._pixi_env
         if pixi_env is None:
             self._expanded_pixi_env = None
             return None
 
-        
+        return PixiEnvLockfileSpec(
+            pixi_env["lockfile"], pixi_env["env"], rule=self
+        )
 
     def expand_conda_env(self, wildcards, params=None, input=None):
         if self._expanded_conda_env is not _NOT_CACHED:

@@ -1951,8 +1951,6 @@ def args_to_api(args, parser):
             deployment_method.add(DeploymentMethod.APPTAINER)
         if args.use_envmodules:
             deployment_method.add(DeploymentMethod.ENV_MODULES)
-        if args.use_pixi:
-            deployment_method.add(DeploymentMethod.PIXI)
 
         try:
             storage_settings = StorageSettings(
