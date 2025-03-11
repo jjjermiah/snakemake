@@ -118,12 +118,14 @@ jobs:
           sudo chsh -s /usr/bin/dash $(whoami)
 
       - name: Run Tests for Linux
+        if: runner.os == 'Linux'
         shell: bash -el {0}
         env:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
         run: |
-          pytest -v -x --show-capture=stderr \
+          pixi run -e ${{ matrix.env }} \
+            pytest -v -x --show-capture=stderr \
             --splits 10 --group ${{ matrix.test_group }} --splitting-algorithm=least_duration \
             tests/tests.py \
             tests/tests_using_conda.py \
