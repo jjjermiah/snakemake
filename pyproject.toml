@@ -114,7 +114,6 @@ snakemake = { path = ".", editable = true, extras = ["all"] }
 
 [tool.pixi.environments]
 dev = { features = ["test", "docs", "style"] }
-test = { features = ["test"] }
 
 py311 = { features = ["py311", "test"] }
 py312 = { features = ["py312", "test"] }
