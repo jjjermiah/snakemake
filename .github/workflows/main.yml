@@ -154,6 +154,7 @@ jobs:
         env:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
+        shell: bash
         run: |
           pixi run -e ${{ matrix.env }} \
             python -m pytest \
