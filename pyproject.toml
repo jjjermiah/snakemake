@@ -64,6 +64,7 @@ Source = "https://github.com/snakemake/snakemake"
 messaging = ["slack_sdk"]
 pep = ["eido", "peppy"]
 reports = ["pygments"]
+all = ["slack_sdk", "eido", "peppy", "pygments"]
 
 [project.scripts]
 snakemake = "snakemake.cli:main"
@@ -110,7 +111,7 @@ channels = ["conda-forge", "bioconda"]
 platforms = ["linux-64", "osx-arm64", "win-64", "osx-64", "linux-aarch64"]
 
 [tool.pixi.pypi-dependencies]
-snakemake = { path = ".", editable = true }
+snakemake = { path = ".", editable = true, extras = ["all"] }
 
 [tool.pixi.environments]
 dev = { features = [

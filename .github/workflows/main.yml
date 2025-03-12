@@ -113,7 +113,7 @@ jobs:
         if: runner.os == 'Linux' && matrix.shell == 'dash'
         run: |
           sudo chsh -s /usr/bin/dash $(whoami)
-
+      
       - name: Run Tests for Linux
         if: runner.os == 'Linux'
         shell: bash -el {0}
@@ -172,6 +172,7 @@ jobs:
         env:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
+        shell: bash
         run: |
           pixi run -e ${{ matrix.env }} \
             python -m pytest \

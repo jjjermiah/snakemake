@@ -8,6 +8,9 @@ from snakemake.utils import find_bash_on_windows
 from snakemake.shell import shell
 
 skip_on_windows = pytest.mark.skipif(ON_WINDOWS, reason="Unix stuff")
+skip_on_macos = pytest.mark.skipif(
+    sys.platform == "darwin", reason="Not supported on macOS"
+)
 only_on_windows = pytest.mark.skipif(not ON_WINDOWS, reason="Windows stuff")
 needs_strace = pytest.mark.xfail(
     os.system("strace -o /dev/null true") != 0, reason="Missing strace"
