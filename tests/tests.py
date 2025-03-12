@@ -1354,6 +1354,7 @@ def test_multiext():
 def test_core_dependent_threads():
     run(dpath("test_core_dependent_threads"))
 
+
 @pytest.mark.needs_envmodules
 @skip_on_windows
 def test_env_modules():
