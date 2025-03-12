@@ -288,7 +288,6 @@ jobs:
 
       - name: Run Tests for Linux (os= 'Linux')
         if: runner.os == 'Linux'
-        shell: bash -el {0}
         run: |
           pixi run --environment ${{matrix.env}} ${{ matrix.test_type }} \
             --splits 10 \
