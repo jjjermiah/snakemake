@@ -133,8 +133,20 @@ test = { features = [
   "storage-plugins",
   "executor-plugins",
 ] }
-py311 = { features = ["py311", "test"] }
-py312 = { features = ["py312", "test"] }
+py311 = { features = [
+  "py311",
+  "test",
+  "plugin-interfaces",
+  "storage-plugins",
+  "executor-plugins",
+] }
+py312 = { features = [
+  "py312",
+  "test",
+  "plugin-interfaces",
+  "storage-plugins",
+  "executor-plugins",
+] }
 docs = { features = ["docs", "plugin-interfaces"] }
 quality = { features = ["style"] }
 publish = { features = ["publish"] }
