@@ -82,13 +82,14 @@ jobs:
           pixi-version: v0.42.1
           cache: false # no pixi.lock
           locked: false
-
-      - name: Install Linux-Specific Dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo add-apt-repository -y ppa:apptainer/ppa
-          sudo apt-get update
-          sudo apt install -y git wget openmpi-bin libopenmpi-dev apptainer dash
+      
+      # these are now installed by pixi
+      # - name: Install Linux-Specific Dependencies
+      #   if: runner.os == 'Linux'
+      #   run: |
+      #     sudo add-apt-repository -y ppa:apptainer/ppa
+      #     sudo apt-get update
+      #     sudo apt install -y git wget openmpi-bin libopenmpi-dev apptainer dash
 
       # See https://github.com/apptainer/apptainer/pull/2262
       - name: Disable apparmor namespace restrictions for apptainer (Linux)

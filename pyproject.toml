@@ -228,10 +228,15 @@ xorg-libxdmcp = "*"
 xorg-libsm = "*"
 stress-ng = "*"
 nodejs = "*"
-apptainer = "*"
 squashfuse = "*"
 cwltool = "*"
 cwl-utils = "*"
+# moved to pixi from main.yaml installing via apt
+apptainer = "*"
+git = "*"
+wget = "*"
+dash = "*"
+openmpi = "*"
 
 #------------------------ Docs -------------------------------
 [tool.pixi.feature.docs.dependencies]
