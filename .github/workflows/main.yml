@@ -55,7 +55,6 @@ jobs:
           #- shell: dash
           #  py_ver: "3.11"
     runs-on: ubuntu-latest
-    needs: formatting
     env:
       AWS_AVAILABLE: "${{ secrets.AWS_ACCESS_KEY_ID }}"
       GCP_AVAILABLE: "${{ secrets.GCP_SA_KEY }}"
