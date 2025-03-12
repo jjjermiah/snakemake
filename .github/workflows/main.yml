@@ -168,7 +168,7 @@ jobs:
 
       # perhaps this can be merged with the above step
       - name: Run Tests for MacOS
-        if: runner.os == 'macos-latest' || runner.os == 'macos-13'
+        if: runner.os == 'macOS'
         env:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
