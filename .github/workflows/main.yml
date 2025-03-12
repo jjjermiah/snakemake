@@ -81,6 +81,7 @@ jobs:
       - name: Install snakemake from source
         shell: bash -el {0}
         run: |
+          whereis module
           conda config --set channel_priority strict
 
           pip install --no-cache-dir --editable .
