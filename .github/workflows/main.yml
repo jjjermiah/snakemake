@@ -91,7 +91,7 @@ jobs:
           sudo apt install -y git wget openmpi-bin libopenmpi-dev apptainer dash
 
       # See https://github.com/apptainer/apptainer/pull/2262
-      - name: Disable apparmor namespace restrictions for apptainer
+      - name: Disable apparmor namespace restrictions for apptainer (Linux)
         if: runner.os == 'Linux'
         run: |
           sudo sh -c 'echo kernel.apparmor_restrict_unprivileged_userns=0 \
@@ -106,7 +106,7 @@ jobs:
           secret_key: minio123
           port: 9000
 
-      - name: Test MinIO
+      - name: Test MinIO (Only on Linux)
         if: runner.os == 'Linux'
         run: |
           export AWS_ACCESS_KEY_ID=minio
@@ -125,7 +125,7 @@ jobs:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
         run: |
-          pytest -v -x --show-capture=stderr \
+          pixi run -e ${{ matrix.env }} pytest -v -x --show-capture=stderr \
             --splits 10 --group ${{ matrix.test_group }} --splitting-algorithm=least_duration \
             tests/tests.py \
             tests/tests_using_conda.py \
@@ -144,7 +144,7 @@ jobs:
           cd tests/test_report
           snakemake --use-conda --cores 1 --report report.zip
 
-      - name: Upload Report (Only for Dash on Test Group 1)
+      - name: Upload Report (Only for Dash on Test Group 1 on Linux)
         if: runner.os == 'Linux' && matrix.shell == 'dash' && matrix.test_group == 1
         uses: actions/upload-artifact@v4
         with:
@@ -157,7 +157,14 @@ jobs:
           CI: true
           ZENODO_SANDBOX_PAT: "${{ secrets.ZENODO_SANDBOX_PAT }}"
         run: |
-          python -m pytest --show-capture=stderr -v -x --splits 10 --group ${{ matrix.test_group }} --splitting-algorithm=least_duration tests/tests.py
+          pixi run -e ${{ matrix.env }} \
+            python -m pytest \
+            --show-capture=stderr \
+            -v \
+            -x \
+            --splits 10 --group ${{ matrix.test_group }} \
+            --splitting-algorithm=least_duration \
+            tests/tests.py
 
   testing-done:
     if: github.event.pull_request.merged != true || github.ref != 'refs/heads/main'
