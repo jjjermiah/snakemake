@@ -142,13 +142,13 @@ channels = ["conda-forge", "bioconda", "nodefaults"]
 cmd = ["pytest", "-m", "not needs_envmodules", "tests/tests.py"]
 description = "Run tests only for tests/tests.py"
 
-[tool.pixi.feature.test.tasks.test-complex]
-description = "Run all tests in the tests directory except tests.py"
+[tool.pixi.feature.test.tasks.test-all]
+description = "Run all tests in the tests directory"
 cmd = [
   "pytest",
   "tests",
   "-m", "not needs_envmodules",
-  "--ignore=tests/tests.py", # tested in test-simple
+  "tests/tests.py", # tested in test-simple
   "tests/tests_using_conda.py",
   "tests/test_expand.py",
   "tests/test_io.py",
@@ -166,10 +166,6 @@ cmd = [
   # "tests/test_script.py",
   # "tests/test_sourcecache.py",
 ]
-
-[tool.pixi.feature.test.tasks.test-all]
-description = "Runs both simple and complex tests"
-depends-on = ["test-simple", "test-complex"]
 
 [tool.pixi.feature.test.dependencies]
 pytest = ">=8.3.5,<9"
