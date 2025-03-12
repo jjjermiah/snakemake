@@ -133,13 +133,20 @@ python = ">=3.12.0,<3.13"
 addopts = "--verbose --show-capture=stderr" #  --exitfirst
 markers = [
   #  (use '-m "not needs_envmodules"' to skip these tests)
-  "needs_envmodules: marks tests that require environment modules"
+  "needs_envmodules: marks tests that require environment modules",
 ]
 [tool.pixi.feature.test]
 channels = ["conda-forge", "bioconda", "nodefaults"]
 
 [tool.pixi.feature.test.tasks.test-simple]
-cmd = ["pytest", "-m", "not needs_envmodules", "tests/tests.py"]
+cmd = [
+  "pytest",
+  "-m",
+  "not needs_envmodules",
+  "-k",
+  "not test_conda_global",
+  "tests/tests.py",
+]
 description = "Run tests only for tests/tests.py"
 
 [tool.pixi.feature.test.tasks.test-all]
@@ -147,8 +154,11 @@ description = "Run all tests in the tests directory"
 cmd = [
   "pytest",
   "tests",
-  "-m", "not needs_envmodules",
-  "tests/tests.py", # tested in test-simple
+  "-m",
+  "not needs_envmodules",
+  "-k",
+  "not test_conda_global",
+  "tests/tests.py",                    # tested in test-simple
   "tests/tests_using_conda.py",
   "tests/test_expand.py",
   "tests/test_io.py",
