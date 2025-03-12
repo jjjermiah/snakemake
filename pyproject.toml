@@ -175,6 +175,8 @@ snakemake-storage-plugin-http = "*"
 snakemake-storage-plugin-s3 = "*"
 snakemake-storage-plugin-fs = "*"
 snakemake-executor-plugin-cluster-generic = "*"
+conda = "*"
+pip = "*"
 
 [tool.pixi.feature.test.target.linux-64.dependencies]
 environment-modules = "*"
