@@ -47,7 +47,6 @@ jobs:
   # Testing: Run tests using Snakemake
   ################################################################################################
   Test-Suite:
-    needs: formatting
     if: github.event.pull_request.merged != true || github.ref != 'refs/heads/main'
     # Allow up to 10 matrix jobs to fail without failing the workflow
     continue-on-error: false
@@ -185,6 +184,7 @@ jobs:
     if: github.event.pull_request.merged != true || github.ref != 'refs/heads/main'
     needs:
       - Test-Suite
+      - formatting
     runs-on: ubuntu-latest
     steps:
       - run: echo "All tests passed."
