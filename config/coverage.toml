@@ -1,0 +1,6 @@
+[tool.coverage.run]
+omit = [
+  # "src/snakemake_storage_plugin_orcestra/*.py",
+]
+
+[tool.coverage.report]
