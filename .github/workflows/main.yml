@@ -162,8 +162,7 @@ jobs:
   testing-done:
     if: github.event.pull_request.merged != true || github.ref != 'refs/heads/main'
     needs:
-      - testing
-      - testing-windows
+      - Test-Suite
     runs-on: ubuntu-latest
     steps:
       - run: echo "All tests passed."
