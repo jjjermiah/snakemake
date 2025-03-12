@@ -115,6 +115,7 @@ jobs:
           sudo chsh -s /usr/bin/dash $(whoami)
 
       - name: Run Tests for Linux
+        if: runner.os == 'Linux'
         shell: bash -el {0}
         env:
           CI: true
