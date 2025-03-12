@@ -139,7 +139,7 @@ markers = [
 channels = ["conda-forge", "bioconda", "nodefaults"]
 
 [tool.pixi.feature.test.tasks.test-simple]
-cmd = ["pytest", "-m 'not needs_envmodules'", "tests/tests.py"]
+cmd = ["pytest", "-m", "not needs_envmodules", "tests/tests.py"]
 description = "Run tests only for tests/tests.py"
 
 [tool.pixi.feature.test.tasks.test-complex]
@@ -147,7 +147,7 @@ description = "Run all tests in the tests directory except tests.py"
 cmd = [
   "pytest",
   "tests",
-  "-m 'not needs_envmodules'",
+  "-m", "not needs_envmodules",
   "--ignore=tests/tests.py", # tested in test-simple
   "tests/tests_using_conda.py",
   "tests/test_expand.py",
