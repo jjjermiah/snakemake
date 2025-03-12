@@ -91,13 +91,6 @@ jobs:
           secret_key: minio123
           port: 9000
 
-      - name: Setup apt dependencies
-        if: runner.os == 'Linux'
-        run: |
-          sudo add-apt-repository -y ppa:apptainer/ppa
-          sudo apt-get update
-          sudo apt install -y git wget openmpi-bin libopenmpi-dev apptainer
-
       - name: Test MinIO (os='Linux')
         if: runner.os == 'Linux'
         run: |
