@@ -49,7 +49,7 @@ jobs:
       matrix:
         test_group: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
         # see pyprojec.toml: [tool.pixi.feature.test] for available test types
-        os: [ubuntu-latest, windows-latest] #  macos-latest, macos-13 not supported yet
+        os: [ubuntu-latest, windows-latest, macos-latest] #  , macos-13 not supported yet
         env: ["py311", "py312"]
         shell:
           - bash
@@ -106,7 +106,16 @@ jobs:
             --splits 10 \
             --group ${{ matrix.test_group }} \
             --splitting-algorithm=least_duration
-      
+
+      - name: Run Tests for MacOS (os='macOS')
+        if: runner.os == 'macOS'
+        run: |
+          pixi run --environment ${{matrix.env}} test-simple \
+          --splits 10 \
+          --group ${{ matrix.test_group }} \
+          --splitting-algorithm=least_duration \
+          -m "not needs_envmodules and not needs_s3"
+
       - name: Run Tests for Windows (os='Windows')
         if: runner.os == 'Windows'
         run: |
@@ -125,7 +134,7 @@ jobs:
   build-container-image:
     if: github.event.pull_request.merged != true || github.ref != 'refs/heads/main'
     runs-on: ubuntu-latest
-    needs: tests 
+    needs: tests
     steps:
       - uses: actions/checkout@v4
 
