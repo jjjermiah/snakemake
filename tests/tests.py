@@ -1328,7 +1328,10 @@ def test_github_issue727():
 
 
 @skip_on_windows
-@pytest.mark.skipif(ON_MACOS, reason="`wc` command spacing differs between macOS and Linux, expected output is from linux")
+@pytest.mark.skipif(
+    ON_MACOS,
+    reason="`wc` command spacing differs between macOS and Linux, expected output is from linux",
+)
 def test_github_issue988():
     run(dpath("test_github_issue988"))
 
