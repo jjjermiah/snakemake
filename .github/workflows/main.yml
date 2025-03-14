@@ -26,7 +26,8 @@ jobs:
         with:
           environments: "quality"
           pixi-version: v0.42.1
-          cache: false # no pixi.lock
+          cache: true # no pixi.lock
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
           locked: false
 
       - name: Run black
@@ -69,7 +70,8 @@ jobs:
         with:
           environments: ${{ matrix.env }}
           pixi-version: v0.42.1
-          cache: false # no pixi.lock
+          cache: true # no pixi.lock
+          cache-write: ${{ github.event_name == 'push' && github.ref_name == 'main' }}
           locked: false
 
       # See https://github.com/apptainer/apptainer/pull/2262
